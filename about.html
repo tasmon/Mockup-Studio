@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png" type="image/png">
+  <title>About - Mockup Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('mockup-settings') || '{}');
+      if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+      if (s.accent && s.accent !== '#4f46e5') {
+        document.documentElement.style.setProperty('--primary', s.accent);
+      }
+    } catch(e) {}
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">📱</span>
+        <span class="brand-text">Mockup Studio</span>
+      </a>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="help.html" class="nav-link">Help</a></li>
+        <li><a href="about.html" class="nav-link active">About</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container narrow">
+    <div class="page-header">
+      <h1>About Mockup Studio</h1>
+      <p class="page-subtitle">A simple, fast, privacy-friendly tool to wrap your screenshots in beautiful device frames.</p>
+    </div>
+
+    <div class="card">
+      <div class="about-hero">
+        <span class="version-tag">v2.1.0</span>
+        <div class="about-avatar">👨‍💻</div>
+        <h2>Developer</h2>
+        <p class="developer-name">Tasmon Islam</p>
+        <p class="developer-role">Designer & Developer</p>
+      </div>
+
+      <div class="about-section">
+        <h3>What is this app?</h3>
+        <p>Mockup Studio is a Progressive Web App that lets you upload screenshots and instantly wrap them in realistic device frames. Perfect for app store listings, marketing materials, blog posts, social media, portfolios, and presentations.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>What's new in v2.1.0</h3>
+        <ul class="feature-list">
+          <li>🆕 Image fit modes: cover, contain, fill, none</li>
+          <li>🆕 Zoom in/out with slider and quick buttons</li>
+          <li>🆕 Drag-to-position your image</li>
+          <li>🆕 Transparent background support (PNG/WebP)</li>
+          <li>🆕 Custom background color picker</li>
+          <li>✅ 8 device types (iPhone, iPad, Android, Apple Watch, MacBook, Laptop, iMac, Smart TV)</li>
+          <li>✅ Batch export multiple screenshots at once</li>
+          <li>✅ Export as PNG, JPEG, or WebP</li>
+          <li>✅ 8 color themes + custom accent color</li>
+          <li>✅ Works offline (installable PWA)</li>
+        </ul>
+      </div>
+
+      <div class="about-section">
+        <h3>Privacy</h3>
+        <p>Your images never leave your device. Everything is processed locally in your browser. No servers, no uploads, no analytics. The app works offline once installed.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>Open Source & Free</h3>
+        <p>This is a free, open project. Use it however you like. Built with vanilla HTML, CSS, and JavaScript — no heavy frameworks.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>Connect</h3>
+        <p>Built by <strong>Tasmon Islam</strong>. Have feedback or feature requests? Drop a message on the project's GitHub repository.</p>
+      </div>
+
+      <div class="about-meta">
+        <p>Made with 🩵</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

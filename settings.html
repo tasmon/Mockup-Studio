@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png" type="image/png">
+  <title>Settings - Mockup Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('mockup-settings') || '{}');
+      if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+      if (s.accent && s.accent !== '#4f46e5') {
+        document.documentElement.style.setProperty('--primary', s.accent);
+      }
+    } catch(e) {}
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">📱</span>
+        <span class="brand-text">Mockup Studio</span>
+      </a>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="help.html" class="nav-link">Help</a></li>
+        <li><a href="about.html" class="nav-link">About</a></li>
+        <li><a href="settings.html" class="nav-link active">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container narrow">
+    <div class="page-header">
+      <h1>Settings</h1>
+      <p class="page-subtitle">Customize the app to your liking.</p>
+    </div>
+
+    <div class="card">
+      <h2 class="settings-section-title">Appearance</h2>
+      <div class="setting-row">
+        <div>
+          <label class="setting-label">Theme</label>
+          <p class="setting-desc">Choose your color theme</p>
+        </div>
+        <div class="theme-grid" id="themeGrid">
+          <button class="theme-card selected" data-theme="light" type="button">
+            <div class="theme-preview theme-preview-light"></div>
+            <span>Light</span>
+          </button>
+          <button class="theme-card" data-theme="dark" type="button">
+            <div class="theme-preview theme-preview-dark"></div>
+            <span>Dark</span>
+          </button>
+          <button class="theme-card" data-theme="ocean" type="button">
+            <div class="theme-preview theme-preview-ocean"></div>
+            <span>Ocean</span>
+          </button>
+          <button class="theme-card" data-theme="sunset" type="button">
+            <div class="theme-preview theme-preview-sunset"></div>
+            <span>Sunset</span>
+          </button>
+          <button class="theme-card" data-theme="forest" type="button">
+            <div class="theme-preview theme-preview-forest"></div>
+            <span>Forest</span>
+          </button>
+          <button class="theme-card" data-theme="lavender" type="button">
+            <div class="theme-preview theme-preview-lavender"></div>
+            <span>Lavender</span>
+          </button>
+          <button class="theme-card" data-theme="midnight" type="button">
+            <div class="theme-preview theme-preview-midnight"></div>
+            <span>Midnight</span>
+          </button>
+          <button class="theme-card" data-theme="solarized" type="button">
+            <div class="theme-preview theme-preview-solarized"></div>
+            <span>Solarized</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="accentPicker">Accent color</label>
+          <p class="setting-desc">Override the theme accent color</p>
+        </div>
+        <input type="color" id="accentPicker" value="#4f46e5" class="color-input">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="settings-section-title">Defaults</h2>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="defaultDevice">Default device</label>
+          <p class="setting-desc">Pre-selected when uploading</p>
+        </div>
+        <select id="defaultDevice" class="select-input">
+          <option value="iphone">iPhone</option>
+          <option value="ipad">iPad</option>
+          <option value="android">Android</option>
+          <option value="watch">Apple Watch</option>
+          <option value="macbook">MacBook</option>
+          <option value="laptop">Laptop</option>
+          <option value="imac">iMac</option>
+          <option value="tv">Smart TV</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="defaultFormat">Default export format</label>
+          <p class="setting-desc">Format used for export</p>
+        </div>
+        <select id="defaultFormat" class="select-input">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="defaultQuality">Default quality</label>
+          <p class="setting-desc">For JPEG/WebP exports</p>
+        </div>
+        <div class="range-row">
+          <input type="range" id="defaultQuality" min="50" max="100" value="92">
+          <span id="defaultQualityValue">92%</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="defaultPrefix">Filename prefix</label>
+          <p class="setting-desc">Prefix for exported files</p>
+        </div>
+        <input type="text" id="defaultPrefix" class="text-input" value="mockup" maxlength="50">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="settings-section-title">Behavior</h2>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="autoFit">Auto-fit images</label>
+          <p class="setting-desc">Fit screenshots to device screen automatically</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="autoFit" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="hqExport">High-quality export</label>
+          <p class="setting-desc">Render at 2× resolution (slower but sharper)</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="hqExport" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label class="setting-label" for="reduceMotion">Reduce motion</label>
+          <p class="setting-desc">Disable animations and transitions</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="reduceMotion">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="settings-section-title">Data</h2>
+      <div class="setting-row">
+        <div>
+          <label class="setting-label">Reset all settings</label>
+          <p class="setting-desc">Restore defaults and clear cached data</p>
+        </div>
+        <button class="btn btn-danger" id="resetSettings" type="button">Reset</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mockup Studio">
+  <meta name="description" content="Transform screenshots into realistic device mockups">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <title>Mockup Studio - Screenshot to Device Mockup</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function() {
+      try {
+        const s = JSON.parse(localStorage.getItem('mockup-settings') || '{}');
+        if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+        if (s.accent && s.accent !== '#4f46e5') {
+          document.documentElement.style.setProperty('--primary', s.accent);
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">📱</span>
+        <span class="brand-text">Mockup Studio</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="nav-link active">Home</a></li>
+        <li><a href="help.html" class="nav-link">Help</a></li>
+        <li><a href="about.html" class="nav-link">About</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="install-banner" id="installBanner" hidden>
+    <div class="install-content">
+      <span>📲 Install Mockup Studio for offline use</span>
+      <div class="install-actions">
+        <button class="btn btn-primary btn-sm" id="installBtn">Install</button>
+        <button class="btn btn-ghost btn-sm" id="dismissInstall">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+    <section class="hero">
+      <h1 class="hero-title">Transform Screenshots into Device Mockups</h1>
+      <p class="hero-subtitle">Upload one or multiple screenshots and wrap them in beautiful, realistic device frames.</p>
+
+      <div class="upload-zone" id="uploadZone" tabindex="0" role="button" aria-label="Upload screenshots">
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple hidden>
+        <div class="upload-content">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <h3>Drop screenshots here</h3>
+          <p>or <button type="button" class="link-btn" id="browseBtn">browse files</button></p>
+          <p class="upload-hint">Supports PNG, JPEG, WebP • Multiple files allowed</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="deviceSection" hidden>
+      <div class="section-header">
+        <h2>Choose a Device</h2>
+        <p class="section-sub">Select the device frame for your mockup</p>
+      </div>
+      <div class="device-grid" id="deviceGrid" role="radiogroup" aria-label="Device selection">
+        <button class="device-card selected" data-device="iphone" role="radio" aria-checked="true" tabindex="0">
+          <div class="device-thumb">
+            <div class="thumb-frame thumb-iphone">
+              <div class="thumb-screen"></div>
+              <div class="thumb-island"></div>
+            </div>
+          </div>
+          <span class="device-name">iPhone</span>
+        </button>
+        <button class="device-card" data-device="ipad" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb">
+            <div class="thumb-frame thumb-ipad"><div class="thumb-screen"></div></div>
+          </div>
+          <span class="device-name">iPad</span>
+        </button>
+        <button class="device-card" data-device="android" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb">
+            <div class="thumb-frame thumb-android">
+              <div class="thumb-screen"></div>
+              <div class="thumb-punch"></div>
+            </div>
+          </div>
+          <span class="device-name">Android</span>
+        </button>
+        <button class="device-card" data-device="watch" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb">
+            <div class="thumb-watch">
+              <div class="thumb-watch-band thumb-band-top"></div>
+              <div class="thumb-watch-body"><div class="thumb-watch-screen"></div></div>
+              <div class="thumb-watch-crown"></div>
+              <div class="thumb-watch-band thumb-band-bottom"></div>
+            </div>
+          </div>
+          <span class="device-name">Apple Watch</span>
+        </button>
+        <button class="device-card" data-device="macbook" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb thumb-macbook-stack">
+            <div class="thumb-lid">
+              <div class="thumb-screen"></div>
+              <div class="thumb-notch"></div>
+            </div>
+            <div class="thumb-base"></div>
+          </div>
+          <span class="device-name">MacBook</span>
+        </button>
+        <button class="device-card" data-device="laptop" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb thumb-laptop-stack">
+            <div class="thumb-laptop-lid"><div class="thumb-screen"></div></div>
+            <div class="thumb-laptop-base"></div>
+          </div>
+          <span class="device-name">Laptop</span>
+        </button>
+        <button class="device-card" data-device="imac" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb thumb-imac-stack">
+            <div class="thumb-imac-display"><div class="thumb-screen"></div></div>
+            <div class="thumb-imac-stand"></div>
+            <div class="thumb-imac-foot"></div>
+          </div>
+          <span class="device-name">iMac</span>
+        </button>
+        <button class="device-card" data-device="tv" role="radio" aria-checked="false" tabindex="0">
+          <div class="device-thumb thumb-tv-stack">
+            <div class="thumb-tv-bezel"><div class="thumb-screen"></div></div>
+            <div class="thumb-tv-legs">
+              <div class="thumb-tv-leg"></div>
+              <div class="thumb-tv-leg"></div>
+            </div>
+          </div>
+          <span class="device-name">Smart TV</span>
+        </button>
+      </div>
+
+      <div class="orientation-toggle" id="orientationToggle" hidden>
+        <label>Orientation:</label>
+        <button class="seg-btn selected" data-orient="portrait" type="button">Portrait</button>
+        <button class="seg-btn" data-orient="landscape" type="button">Landscape</button>
+      </div>
+    </section>
+
+    <section class="section" id="previewSection" hidden>
+      <div class="section-header">
+        <h2>Preview & Customize</h2>
+        <p class="section-sub">Adjust device, colors, image position, and background</p>
+      </div>
+
+      <div class="options-bar">
+        <div class="opt-group">
+          <label>Frame Color</label>
+          <div class="color-pills" id="frameColors" role="radiogroup" aria-label="Frame color">
+            <button class="color-pill selected" data-color="dark" style="background:#1c1c1e" title="Dark" aria-label="Dark"></button>
+            <button class="color-pill" data-color="silver" style="background:linear-gradient(135deg,#e5e5ea,#8e8e93)" title="Silver" aria-label="Silver"></button>
+            <button class="color-pill" data-color="gold" style="background:linear-gradient(135deg,#f5e6c8,#c9a961)" title="Gold" aria-label="Gold"></button>
+            <button class="color-pill" data-color="blue" style="background:linear-gradient(135deg,#3b82f6,#1e40af)" title="Blue" aria-label="Blue"></button>
+            <button class="color-pill" data-color="red" style="background:linear-gradient(135deg,#ef4444,#991b1b)" title="Red" aria-label="Red"></button>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <label>Background</label>
+          <div class="bg-pills" id="bgOptions" role="radiogroup" aria-label="Background">
+            <button class="bg-pill selected" data-bg="white" title="White" style="background:#ffffff;border:1px solid #e5e7eb" aria-label="White"></button>
+            <button class="bg-pill" data-bg="transparent" title="Transparent" aria-label="Transparent" style="background:
+              linear-gradient(45deg, #ccc 25%, transparent 25%),
+              linear-gradient(-45deg, #ccc 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, #ccc 75%),
+              linear-gradient(-45deg, transparent 75%, #ccc 75%);
+              background-size: 12px 12px;
+              background-position: 0 0, 0 6px, 6px -6px, -6px 0px;"></button>
+            <button class="bg-pill" data-bg="light" title="Light" style="background:linear-gradient(135deg,#f3f4f6,#e5e7eb)" aria-label="Light"></button>
+            <button class="bg-pill" data-bg="dark" title="Dark" style="background:linear-gradient(135deg,#1f2937,#111827)" aria-label="Dark"></button>
+            <button class="bg-pill" data-bg="sunset" title="Sunset" style="background:linear-gradient(135deg,#fbbf24,#ec4899)" aria-label="Sunset"></button>
+            <button class="bg-pill" data-bg="ocean" title="Ocean" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)" aria-label="Ocean"></button>
+            <button class="bg-pill" data-bg="forest" title="Forest" style="background:linear-gradient(135deg,#10b981,#065f46)" aria-label="Forest"></button>
+            <button class="bg-pill" data-bg="purple" title="Purple" style="background:linear-gradient(135deg,#a855f7,#6b21a8)" aria-label="Purple"></button>
+            <button class="bg-pill bg-pill-custom" data-bg="custom" title="Custom color" aria-label="Custom color" style="background:conic-gradient(from 0deg, #ef4444, #f59e0b, #10b981, #3b82f6, #a855f7, #ef4444);"></button>
+          </div>
+          <div class="custom-bg-controls" id="customBgControls" hidden>
+            <label for="customBgColor" class="mini-label">Pick color:</label>
+            <input type="color" id="customBgColor" value="#6366f1" class="color-input-inline">
+            <button type="button" class="btn btn-ghost btn-sm" id="applyCustomBg">Apply</button>
+          </div>
+        </div>
+
+        <div class="opt-group">
+          <label for="scaleRange">Device Scale</label>
+          <div class="range-row">
+            <input type="range" id="scaleRange" min="40" max="100" value="80" aria-label="Device scale">
+            <span id="scaleValue">80%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Adjustment Controls -->
+      <div class="adjust-panel" id="adjustPanel" hidden>
+        <div class="adjust-header">
+          <h3>  Image Adjustment</h3>
+          <p class="adjust-sub">Fit, crop, zoom and position your screenshot</p>
+        </div>
+
+        <div class="adjust-grid">
+          <div class="opt-group">
+            <label for="fitMode">Fit Mode</label>
+            <select id="fitMode" class="select-input">
+              <option value="cover">Cover (fill, may crop)</option>
+              <option value="contain">Contain (fit with letterbox)</option>
+              <option value="fill">Fill (stretch to fit)</option>
+              <option value="none">None (actual size)</option>
+            </select>
+          </div>
+
+          <div class="opt-group">
+            <label for="zoomRange">Zoom <span id="zoomValue">100%</span></label>
+            <div class="range-row">
+              <input type="range" id="zoomRange" min="50" max="200" value="100" aria-label="Image zoom">
+            </div>
+          </div>
+
+          <div class="opt-group">
+            <label>Quick Zoom</label>
+            <div class="zoom-buttons">
+              <button type="button" class="btn btn-ghost btn-sm" id="zoomOut">−</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="zoomReset">100%</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="zoomIn">+</button>
+            </div>
+          </div>
+
+          <div class="opt-group">
+            <label>Position</label>
+            <div class="position-controls">
+              <div class="position-pad" id="positionPad" tabindex="0" aria-label="Drag to reposition">
+                <div class="position-dot" id="positionDot"></div>
+              </div>
+              <div class="position-info">
+                <button type="button" class="btn btn-ghost btn-sm" id="resetPosition">Reset</button>
+                <small id="positionValue">0, 0</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="adjust-actions">
+          <button type="button" class="btn btn-secondary btn-sm" id="resetAllAdjust">Reset All Adjustments</button>
+        </div>
+      </div>
+
+      <div class="preview-stage" id="previewStage">
+        <div class="mockup-wrapper" id="mockupWrapper"></div>
+      </div>
+    </section>
+
+    <section class="section" id="batchSection" hidden>
+      <div class="section-header">
+        <h2>Batch Queue <span class="badge" id="batchCount">0</span></h2>
+        <p class="section-sub">Manage your uploaded screenshots</p>
+      </div>
+      <div class="batch-list" id="batchList"></div>
+      <div class="batch-actions">
+        <button class="btn btn-ghost" id="clearBatchBtn" type="button">Clear All</button>
+      </div>
+    </section>
+
+    <section class="section" id="exportSection" hidden>
+      <div class="section-header">
+        <h2>Export</h2>
+        <p class="section-sub">Choose format and export your mockups</p>
+      </div>
+      <div class="export-panel">
+        <div class="export-options">
+          <div class="opt-group">
+            <label>Format</label>
+            <div class="format-pills" role="radiogroup" aria-label="Export format">
+              <button class="format-pill selected" data-format="png" type="button">PNG</button>
+              <button class="format-pill" data-format="jpeg" type="button">JPEG</button>
+              <button class="format-pill" data-format="webp" type="button">WebP</button>
+            </div>
+            <small class="hint-text" id="formatHint">PNG supports transparency</small>
+          </div>
+          <div class="opt-group" id="qualityGroup" hidden>
+            <label for="qualityRange">Quality <span id="qualityValue">92%</span></label>
+            <input type="range" id="qualityRange" min="50" max="100" value="92" aria-label="Export quality">
+          </div>
+          <div class="opt-group">
+            <label for="filenameInput">Filename prefix</label>
+            <input type="text" id="filenameInput" value="mockup" class="text-input" maxlength="50">
+          </div>
+        </div>
+        <div class="export-actions">
+          <button class="btn btn-primary btn-lg" id="exportBtn" type="button">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export Current
+          </button>
+          <button class="btn btn-secondary btn-lg" id="exportAllBtn" type="button">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            Export All (ZIP)
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

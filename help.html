@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png" type="image/png">
+  <title>Help - Mockup Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('mockup-settings') || '{}');
+      if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+      if (s.accent && s.accent !== '#4f46e5') {
+        document.documentElement.style.setProperty('--primary', s.accent);
+      }
+    } catch(e) {}
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">📱</span>
+        <span class="brand-text">Mockup Studio</span>
+      </a>
+      <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="help.html" class="nav-link active">Help</a></li>
+        <li><a href="about.html" class="nav-link">About</a></li>
+        <li><a href="settings.html" class="nav-link">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="container narrow">
+    <div class="page-header">
+      <h1>How to Use</h1>
+      <p class="page-subtitle">A quick guide to creating beautiful device mockups.</p>
+    </div>
+
+    <div class="card">
+      <div class="help-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Upload Screenshots</h3>
+          <p>Drag and drop one or multiple screenshots onto the upload zone, or click "browse files". Supported formats: PNG, JPEG, WebP.</p>
+          <div class="tip">💡 Tip: You can select multiple files at once for batch processing.</div>
+        </div>
+      </div>
+
+      <div class="help-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Choose a Device</h3>
+          <p>Pick the device frame you want. Available options:</p>
+          <ul>
+            <li><strong>iPhone</strong> – Modern iPhone with Dynamic Island</li>
+            <li><strong>iPad</strong> – Tablet style with uniform bezels</li>
+            <li><strong>Android</strong> – Modern smartphone with punch-hole camera</li>
+            <li><strong>Apple Watch</strong> – Smartwatch with crown</li>
+            <li><strong>MacBook</strong> – Open laptop with notch</li>
+            <li><strong>Laptop</strong> – Generic Windows-style laptop</li>
+            <li><strong>iMac</strong> – All-in-one desktop with stand</li>
+            <li><strong>Smart TV</strong> – Television with dual legs</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="help-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Customize</h3>
+          <p>Adjust the look to your liking:</p>
+          <ul>
+            <li><strong>Frame Color</strong> – Dark, Silver, Gold, Blue, or Red</li>
+            <li><strong>Background</strong> – Solid or gradient backgrounds</li>
+            <li><strong>Scale</strong> – Make the mockup larger or smaller</li>
+            <li><strong>Orientation</strong> – Portrait or landscape (where applicable)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="help-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Export</h3>
+          <p>Choose your format and export:</p>
+          <ul>
+            <li><strong>PNG</strong> – Lossless, best quality, larger file</li>
+            <li><strong>JPEG</strong> – Smaller file, good for web (adjust quality)</li>
+            <li><strong>WebP</strong> – Modern format, excellent compression</li>
+          </ul>
+          <p>Use <strong>Export Current</strong> for one image, or <strong>Export All (ZIP)</strong> to download every screenshot as a ZIP archive.</p>
+        </div>
+      </div>
+
+      <div class="help-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Install as App</h3>
+          <p>On supported browsers, click the install banner (or use your browser's "Add to Home Screen" option) to install Mockup Studio as a standalone app. Once installed it works offline.</p>
+        </div>
+      </div>
+
+      <div class="help-step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h3>Settings & Themes</h3>
+          <p>Visit the <a href="settings.html">Settings page</a> to switch themes, change the default export format, manage storage, and more.</p>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h3>FAQ</h3>
+        <details class="faq-item">
+          <summary>Where do my images go?</summary>
+          <p>Nowhere. They stay on your device. All processing happens in your browser.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What image dimensions work best?</summary>
+          <p>Use screenshots that match the aspect ratio of your target device for best results (e.g., 1170×2532 for iPhone, 2048×2732 for iPad).</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I use this offline?</summary>
+          <p>Yes! Once installed as a PWA, the app works completely offline.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why is my exported image low quality?</summary>
+          <p>Make sure the JPEG/WebP quality slider is set high. PNG is always lossless.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I get the best-looking export?</summary>
+          <p>Use high-resolution screenshots, set scale to 100%, export as PNG, and pick a contrasting background.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why is the scale slider not working?</summary>
+          <p>In v2.0.1, scale now properly applies via CSS custom property. If you still see issues, try refreshing the page.</p>
+        </details>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
