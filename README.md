@@ -1,6 +1,6 @@
 # Mockup Studio (Under Maintenance) ⚠️
 
-**Transform screenshots into beautiful, realistic device mockups — right in your browser.**
+**Transform screenshots into beautiful, realistic device mockups - right in your browser.**
 
 A privacy-friendly Progressive Web App that lets you wrap your screenshots in accurate device frames for iPhone, iPad, Android, MacBook, Apple Watch, iMac, Smart TV, and more. No servers, no uploads, no tracking.
 
@@ -14,7 +14,7 @@ A privacy-friendly Progressive Web App that lets you wrap your screenshots in ac
 
 - 📱 **9 device types** - iPhone, iPhone Pro, iPad, Android, Apple Watch, MacBook, Laptop, iMac, Smart TV
 - 🎨 **5 frame colors** + **7 background gradients**
-- 📦 **Batch export** — process multiple screenshots at once
+- 📦 **Batch export** - process multiple screenshots at once
 - 💾 **Multi-format export** - PNG (lossless), JPEG (quality slider), WebP
 - 🌗 **8 color themes** + custom accent color
 - 📲 **Installable PWA** - works offline once installed
@@ -68,15 +68,15 @@ mockup-studio/
 
 1. **Upload** one or more screenshots (drag & drop or browse)
 2. **Select a device** from the grid (iPhone, iPad, Watch, MacBook, etc.)
-3. **Customize** — frame color, background, scale, orientation
-4. **Export** as PNG / JPEG / WebP — single image or ZIP batch
+3. **Customize** - frame color, background, scale, orientation
+4. **Export** as PNG / JPEG / WebP - single image or ZIP batch
 
 ---
 
 ## 🛠️ Tech Stack
 
 - Vanilla **HTML5**, **CSS3**, **JavaScript** (no frameworks)
-- **[html2canvas](https://html2canvas.hertzen.com/)** — DOM-to-image rendering
+- **[html2canvas](https://html2canvas.hertzen.com/)** - DOM-to-image rendering
 - **[JSZip](https://stuk.github.io/jszip/)** — batch ZIP exports
 - **Service Worker** - offline support
 - **Web App Manifest** - PWA installability
