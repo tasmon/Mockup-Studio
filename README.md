@@ -4,9 +4,9 @@
 
 A privacy-friendly Progressive Web App that lets you wrap your screenshots in accurate device frames for iPhone, iPad, Android, MacBook, Apple Watch, iMac, Smart TV, and more. No servers, no uploads, no tracking.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![PWA](https://img.shields.io/badge/PWA-installable-purple)
+![Version](https://img.shields.io/badge/Version-2.5.0-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![PWA](https://img.shields.io/badge/PWA-Installable-purple)
 
 ---
 
