@@ -215,7 +215,7 @@
       <!-- Image Adjustment Controls -->
       <div class="adjust-panel" id="adjustPanel" hidden>
         <div class="adjust-header">
-          <h3>  Image Adjustment</h3>
+          <h3>🎨 Image Adjustment</h3>
           <p class="adjust-sub">Fit, crop, zoom and position your screenshot</p>
         </div>
 
@@ -223,8 +223,8 @@
           <div class="opt-group">
             <label for="fitMode">Fit Mode</label>
             <select id="fitMode" class="select-input">
+              <option value="contain">Contain (fit inside, no crop)</option>
               <option value="cover">Cover (fill, may crop)</option>
-              <option value="contain">Contain (fit with letterbox)</option>
               <option value="fill">Fill (stretch to fit)</option>
               <option value="none">None (actual size)</option>
             </select>
@@ -233,7 +233,7 @@
           <div class="opt-group">
             <label for="zoomRange">Zoom <span id="zoomValue">100%</span></label>
             <div class="range-row">
-              <input type="range" id="zoomRange" min="50" max="200" value="100" aria-label="Image zoom">
+              <input type="range" id="zoomRange" min="50" max="300" value="100" aria-label="Image zoom">
             </div>
           </div>
 

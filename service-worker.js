@@ -1,4 +1,4 @@
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.3.0';
 const CACHE_NAME = 'mockup-studio-v' + APP_VERSION;
 const CORE_ASSETS = [
   './', './index.html', './about.html', './help.html', './settings.html',

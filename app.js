@@ -1,9 +1,12 @@
 /* ============================================
-   MOCKUP STUDIO v2.1.0
-   Image Adjustments + Custom Background
+   MOCKUP STUDIO v2.5.0
+   - FINAL working version
+   - Uses <img> + object-fit (browser native)
+   - Pre-loads images to calculate aspect-aware sizing
+   - Reliable html2canvas export
    ============================================ */
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.5.0';
 
 const DEFAULT_SETTINGS = {
   theme: 'light',
@@ -20,8 +23,7 @@ const DEFAULT_SETTINGS = {
   customBgColor: '#6366f1',
   orientation: 'portrait',
   scale: 80,
-  // Image adjustment defaults (per-image, but these are global defaults)
-  defaultFit: 'cover',
+  defaultFit: 'contain',
   defaultZoom: 100
 };
 
@@ -30,7 +32,7 @@ const ORIENTABLE_DEVICES = ['iphone', 'ipad', 'android'];
 const COLORS = ['dark', 'silver', 'gold', 'blue', 'red'];
 const BACKGROUNDS = ['white', 'transparent', 'light', 'dark', 'sunset', 'ocean', 'forest', 'purple', 'custom'];
 const FORMATS = ['png', 'jpeg', 'webp'];
-const FIT_MODES = ['cover', 'contain', 'fill', 'none'];
+const FIT_MODES = ['contain', 'cover', 'fill', 'none'];
 
 let settings = { ...DEFAULT_SETTINGS };
 let images = [];
@@ -39,7 +41,7 @@ let deferredPrompt = null;
 let isExporting = false;
 
 // ============================================
-// INIT
+// INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', init);
 
@@ -63,31 +65,23 @@ function loadSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('mockup-settings') || '{}');
     settings = { ...DEFAULT_SETTINGS, ...saved };
-
-    // Validate
     if (!DEVICES.includes(settings.defaultDevice)) settings.defaultDevice = 'iphone';
     if (!FORMATS.includes(settings.defaultFormat)) settings.defaultFormat = 'png';
     if (!COLORS.includes(settings.frameColor)) settings.frameColor = 'dark';
     if (!BACKGROUNDS.includes(settings.background)) settings.background = 'white';
-    if (!FIT_MODES.includes(settings.defaultFit)) settings.defaultFit = 'cover';
+    if (!FIT_MODES.includes(settings.defaultFit)) settings.defaultFit = 'contain';
     if (typeof settings.scale !== 'number' || settings.scale < 40 || settings.scale > 100) settings.scale = 80;
-    if (typeof settings.defaultZoom !== 'number' || settings.defaultZoom < 50 || settings.defaultZoom > 200) settings.defaultZoom = 100;
+    if (typeof settings.defaultZoom !== 'number' || settings.defaultZoom < 50 || settings.defaultZoom > 300) settings.defaultZoom = 100;
   } catch (e) {
-    console.warn('Failed to load settings:', e);
     settings = { ...DEFAULT_SETTINGS };
   }
 }
 
 function saveSettings() {
-  try {
-    localStorage.setItem('mockup-settings', JSON.stringify(settings));
-  } catch (e) {
-    console.warn('Failed to save settings:', e);
-  }
+  try { localStorage.setItem('mockup-settings', JSON.stringify(settings)); } catch (e) {}
 }
 
 function applySettings() {
-  // Theme & accent
   document.documentElement.setAttribute('data-theme', settings.theme);
   document.documentElement.setAttribute('data-reduce-motion', settings.reduceMotion);
 
@@ -96,18 +90,17 @@ function applySettings() {
   } else {
     document.documentElement.style.removeProperty('--primary');
   }
-
-  // Custom BG CSS variable
   document.documentElement.style.setProperty('--custom-bg', settings.customBgColor);
 
-  // Sync settings page controls
   const accentPicker = document.getElementById('accentPicker');
   if (accentPicker) accentPicker.value = settings.accent;
 
   const themeGrid = document.getElementById('themeGrid');
-  if (themeGrid) themeGrid.querySelectorAll('.theme-card').forEach(c => {
-    c.classList.toggle('selected', c.dataset.theme === settings.theme);
-  });
+  if (themeGrid) {
+    themeGrid.querySelectorAll('.theme-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.theme === settings.theme);
+    });
+  }
 
   const defaultDevice = document.getElementById('defaultDevice');
   if (defaultDevice) defaultDevice.value = settings.defaultDevice;
@@ -127,12 +120,13 @@ function applySettings() {
 
   const autoFit = document.getElementById('autoFit');
   if (autoFit) autoFit.checked = settings.autoFit;
+
   const hqExport = document.getElementById('hqExport');
   if (hqExport) hqExport.checked = settings.hqExport;
+
   const reduceMotion = document.getElementById('reduceMotion');
   if (reduceMotion) reduceMotion.checked = settings.reduceMotion;
 
-  // Home page controls
   const scaleRange = document.getElementById('scaleRange');
   if (scaleRange) {
     scaleRange.value = settings.scale;
@@ -147,14 +141,13 @@ function applySettings() {
     if (qv) qv.textContent = settings.defaultQuality + '%';
   }
 
-  // Sync format & quality group
   document.querySelectorAll('.format-pill').forEach(p => {
     p.classList.toggle('selected', p.dataset.format === settings.defaultFormat);
   });
+
   const qualityGroup = document.getElementById('qualityGroup');
   if (qualityGroup) qualityGroup.hidden = settings.defaultFormat === 'png';
 
-  // Format hint
   const formatHint = document.getElementById('formatHint');
   if (formatHint) {
     if (settings.defaultFormat === 'png') formatHint.textContent = '✓ PNG supports transparency';
@@ -162,22 +155,20 @@ function applySettings() {
     else formatHint.textContent = '✗ JPEG does not support transparency';
   }
 
-  // Sync background pills
   document.querySelectorAll('#bgOptions .bg-pill').forEach(p => {
     p.classList.toggle('selected', p.dataset.bg === settings.background);
   });
-  // Show/hide custom color picker
+
   const customBgControls = document.getElementById('customBgControls');
   if (customBgControls) customBgControls.hidden = settings.background !== 'custom';
+
   const customBgColor = document.getElementById('customBgColor');
   if (customBgColor) customBgColor.value = settings.customBgColor;
 
-  // Sync color pills
   document.querySelectorAll('#frameColors .color-pill').forEach(p => {
     p.classList.toggle('selected', p.dataset.color === settings.frameColor);
   });
 
-  // Sync orientation
   document.querySelectorAll('.seg-btn[data-orient]').forEach(b => {
     b.classList.toggle('selected', b.dataset.orient === settings.orientation);
   });
@@ -190,13 +181,11 @@ function setupNavigation() {
   const toggle = document.getElementById('navToggle');
   const links = document.getElementById('navLinks');
   if (!toggle || !links) return;
-
   toggle.addEventListener('click', (e) => {
     e.stopPropagation();
     const isOpen = links.classList.toggle('open');
     toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   });
-
   document.addEventListener('click', (e) => {
     if (!toggle.contains(e.target) && !links.contains(e.target) && links.classList.contains('open')) {
       links.classList.remove('open');
@@ -227,25 +216,33 @@ function setupUpload() {
 
     valid.forEach(file => {
       if (file.size > 20 * 1024 * 1024) {
-        showToast('Skipped ' + file.name + ' - file too large (max 20MB)');
+        showToast('Skipped ' + file.name + ' - too large');
         return;
       }
-
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = {
           id: 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
           name: file.name.replace(/\.[^.]+$/, ''),
           dataUrl: e.target.result,
+          naturalWidth: 0,
+          naturalHeight: 0,
           device: settings.defaultDevice,
           frameColor: settings.frameColor,
           orientation: settings.orientation,
-          // Per-image adjustments
           fit: settings.defaultFit,
           zoom: settings.defaultZoom,
-          posX: 0, // -100 to 100 (% of image overflow)
+          posX: 0,
           posY: 0
         };
+        // Pre-load to get dimensions
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          img.naturalWidth = this.naturalWidth;
+          img.naturalHeight = this.naturalHeight;
+        };
+        tempImg.src = e.target.result;
+
         images.push(img);
         if (!activeImageId) activeImageId = img.id;
         updateUI();
@@ -260,7 +257,6 @@ function setupUpload() {
   zone.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
   });
-
   zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
   zone.addEventListener('dragleave', (e) => { if (e.target === zone) zone.classList.remove('dragover'); });
   zone.addEventListener('drop', (e) => {
@@ -268,7 +264,6 @@ function setupUpload() {
     zone.classList.remove('dragover');
     if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
   });
-
   input.addEventListener('change', (e) => {
     if (e.target.files.length > 0) handleFiles(e.target.files);
     e.target.value = '';
@@ -281,17 +276,14 @@ function setupUpload() {
 function setupDeviceSelector() {
   const grid = document.getElementById('deviceGrid');
   if (!grid) return;
-
   const cards = grid.querySelectorAll('.device-card');
   cards.forEach(card => {
     const handler = () => {
       cards.forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-checked', 'false'); });
       card.classList.add('selected');
       card.setAttribute('aria-checked', 'true');
-
       const device = card.dataset.device;
       const img = getActiveImage();
-
       if (img) {
         img.device = device;
         if (!ORIENTABLE_DEVICES.includes(device)) img.orientation = 'portrait';
@@ -326,7 +318,6 @@ function setupDeviceSelector() {
       }
     });
   });
-
   updateOrientationVisibility(settings.defaultDevice);
 }
 
@@ -337,40 +328,33 @@ function updateOrientationVisibility(device) {
 }
 
 // ============================================
-// OPTIONS BAR (Frame, Background, Scale)
+// OPTIONS BAR
 // ============================================
 function setupOptions() {
-  // Frame colors
   document.querySelectorAll('#frameColors .color-pill').forEach(pill => {
     pill.addEventListener('click', () => {
       document.querySelectorAll('#frameColors .color-pill').forEach(p => p.classList.remove('selected'));
       pill.classList.add('selected');
       const color = pill.dataset.color;
       const img = getActiveImage();
-      if (img) {
-        img.frameColor = color;
-        renderPreview();
-      }
+      if (img) { img.frameColor = color; renderPreview(); }
       settings.frameColor = color;
       saveSettings();
     });
   });
 
-  // Backgrounds
   document.querySelectorAll('#bgOptions .bg-pill').forEach(pill => {
     pill.addEventListener('click', () => {
       document.querySelectorAll('#bgOptions .bg-pill').forEach(p => p.classList.remove('selected'));
       pill.classList.add('selected');
       settings.background = pill.dataset.bg;
       saveSettings();
-      applySettings(); // shows/hides custom controls
+      applySettings();
       renderPreview();
     });
   });
 
-  // Custom BG color
   const customBgColor = document.getElementById('customBgColor');
-  const applyCustomBg = document.getElementById('applyCustomBg');
   if (customBgColor) {
     customBgColor.addEventListener('input', (e) => {
       settings.customBgColor = e.target.value;
@@ -379,9 +363,9 @@ function setupOptions() {
       renderPreview();
     });
   }
+  const applyCustomBg = document.getElementById('applyCustomBg');
   if (applyCustomBg) {
     applyCustomBg.addEventListener('click', () => {
-      // Ensure the "custom" pill is selected
       document.querySelectorAll('#bgOptions .bg-pill').forEach(p => {
         p.classList.toggle('selected', p.dataset.bg === 'custom');
       });
@@ -392,7 +376,6 @@ function setupOptions() {
     });
   }
 
-  // Device scale
   const scaleRange = document.getElementById('scaleRange');
   const scaleValue = document.getElementById('scaleValue');
   if (scaleRange) {
@@ -411,10 +394,12 @@ function setupOptions() {
 }
 
 // ============================================
-// IMAGE ADJUSTMENTS (NEW)
+// IMAGE ADJUSTMENTS
 // ============================================
 function setupAdjustments() {
   const fitMode = document.getElementById('fitMode');
+  if (!fitMode) return;
+
   const zoomRange = document.getElementById('zoomRange');
   const zoomValue = document.getElementById('zoomValue');
   const zoomIn = document.getElementById('zoomIn');
@@ -426,9 +411,6 @@ function setupAdjustments() {
   const resetPosition = document.getElementById('resetPosition');
   const resetAllAdjust = document.getElementById('resetAllAdjust');
 
-  if (!fitMode) return; // Adjustment panel not on this page
-
-  // Fit mode
   fitMode.addEventListener('change', () => {
     const img = getActiveImage();
     if (!img) return;
@@ -437,7 +419,6 @@ function setupAdjustments() {
     renderPreview();
   });
 
-  // Zoom slider
   zoomRange.addEventListener('input', (e) => {
     const img = getActiveImage();
     if (!img) return;
@@ -446,11 +427,10 @@ function setupAdjustments() {
     applyImageToPreview();
   });
 
-  // Quick zoom buttons
   if (zoomIn) zoomIn.addEventListener('click', () => {
     const img = getActiveImage();
     if (!img) return;
-    img.zoom = Math.min(200, img.zoom + 10);
+    img.zoom = Math.min(300, img.zoom + 10);
     if (zoomRange) zoomRange.value = img.zoom;
     if (zoomValue) zoomValue.textContent = img.zoom + '%';
     applyImageToPreview();
@@ -474,20 +454,16 @@ function setupAdjustments() {
     applyImageToPreview();
   });
 
-  // Position drag
   if (positionPad && positionDot) {
     let isDragging = false;
-
-    const updateDot = (x, y) => {
+    const updatePosition = (clientX, clientY) => {
       const rect = positionPad.getBoundingClientRect();
       const cx = rect.width / 2;
       const cy = rect.height / 2;
-      const dx = x - rect.left - cx;
-      const dy = y - rect.top - cy;
-      // Normalize to -100..100
+      const dx = clientX - rect.left - cx;
+      const dy = clientY - rect.top - cy;
       const normX = Math.max(-100, Math.min(100, (dx / cx) * 100));
       const normY = Math.max(-100, Math.min(100, (dy / cy) * 100));
-
       const img = getActiveImage();
       if (img) {
         img.posX = normX;
@@ -495,42 +471,32 @@ function setupAdjustments() {
         if (positionValue) positionValue.textContent = Math.round(normX) + ', ' + Math.round(normY);
         applyImageToPreview();
       }
-
       positionDot.style.left = (50 + normX / 2) + '%';
       positionDot.style.top = (50 + normY / 2) + '%';
     };
-
     positionPad.addEventListener('mousedown', (e) => {
       e.preventDefault();
       isDragging = true;
-      updateDot(e.clientX, e.clientY);
+      updatePosition(e.clientX, e.clientY);
     });
-
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-      updateDot(e.clientX, e.clientY);
+      updatePosition(e.clientX, e.clientY);
     });
-
     document.addEventListener('mouseup', () => { isDragging = false; });
-
-    // Touch
     positionPad.addEventListener('touchstart', (e) => {
       e.preventDefault();
       isDragging = true;
       const t = e.touches[0];
-      updateDot(t.clientX, t.clientY);
+      updatePosition(t.clientX, t.clientY);
     }, { passive: false });
-
     positionPad.addEventListener('touchmove', (e) => {
       if (!isDragging) return;
       e.preventDefault();
       const t = e.touches[0];
-      updateDot(t.clientX, t.clientY);
+      updatePosition(t.clientX, t.clientY);
     }, { passive: false });
-
     positionPad.addEventListener('touchend', () => { isDragging = false; });
-
-    // Keyboard arrows
     positionPad.addEventListener('keydown', (e) => {
       const img = getActiveImage();
       if (!img) return;
@@ -564,7 +530,7 @@ function setupAdjustments() {
   if (resetAllAdjust) resetAllAdjust.addEventListener('click', () => {
     const img = getActiveImage();
     if (!img) return;
-    img.fit = 'cover';
+    img.fit = 'contain';
     img.zoom = 100;
     img.posX = 0;
     img.posY = 0;
@@ -577,13 +543,11 @@ function setupAdjustments() {
 function applyImageAdjustmentsToUI() {
   const img = getActiveImage();
   if (!img) return;
-
   const fitMode = document.getElementById('fitMode');
   const zoomRange = document.getElementById('zoomRange');
   const zoomValue = document.getElementById('zoomValue');
   const positionDot = document.getElementById('positionDot');
   const positionValue = document.getElementById('positionValue');
-
   if (fitMode) fitMode.value = img.fit;
   if (zoomRange) zoomRange.value = img.zoom;
   if (zoomValue) zoomValue.textContent = img.zoom + '%';
@@ -594,26 +558,44 @@ function applyImageAdjustmentsToUI() {
   if (positionValue) positionValue.textContent = Math.round(img.posX) + ', ' + Math.round(img.posY);
 }
 
+// Apply image adjustments using inline style on <img>
 function applyImageToPreview() {
-  // Apply fit/zoom/position to the actual image inside the preview
   const wrapper = document.getElementById('mockupWrapper');
   if (!wrapper) return;
-  const img = wrapper.querySelector('.mockup .screen-area img');
-  if (!img) return;
-
+  const imgEl = wrapper.querySelector('.mockup .screen-area img.screen-img');
+  if (!imgEl) return;
   const active = getActiveImage();
   if (!active) return;
 
-  // Fit mode
-  img.style.objectFit = active.fit;
-  // Zoom & position via transform on the image itself
-  if (active.fit === 'none' || active.zoom !== 100 || active.posX !== 0 || active.posY !== 0) {
-    const tx = active.posX; // -100..100 maps to translate %
-    const ty = active.posY;
-    img.style.transform = 'translate(' + tx + '%, ' + ty + '%) scale(' + (active.zoom / 100) + ')';
-    img.style.transformOrigin = 'center center';
+  // Reset styles
+  imgEl.style.transform = '';
+  imgEl.style.objectFit = active.fit;
+  imgEl.style.objectPosition = 'center center';
+
+  if (active.fit === 'none') {
+    // Show actual size
+    imgEl.style.width = 'auto';
+    imgEl.style.height = 'auto';
+    imgEl.style.maxWidth = 'none';
+    imgEl.style.maxHeight = 'none';
+  } else if (active.fit === 'fill') {
+    imgEl.style.width = '100%';
+    imgEl.style.height = '100%';
+    imgEl.style.maxWidth = 'none';
+    imgEl.style.maxHeight = 'none';
   } else {
-    img.style.transform = '';
+    // contain or cover
+    imgEl.style.width = '100%';
+    imgEl.style.height = '100%';
+  }
+
+  // Apply zoom + position via transform
+  if (active.zoom !== 100 || active.posX !== 0 || active.posY !== 0) {
+    const tx = active.posX;
+    const ty = active.posY;
+    const scale = active.zoom / 100;
+    imgEl.style.transform = 'translate(' + tx + '%, ' + ty + '%) scale(' + scale + ')';
+    imgEl.style.transformOrigin = 'center center';
   }
 }
 
@@ -643,7 +625,7 @@ function setupExport() {
       saveSettings();
       const qg = document.getElementById('qualityGroup');
       if (qg) qg.hidden = pill.dataset.format === 'png';
-      applySettings(); // updates hint
+      applySettings();
     });
   });
 
@@ -677,11 +659,9 @@ async function exportCurrent() {
   if (isExporting) return;
   const img = getActiveImage();
   if (!img) return;
-
   isExporting = true;
   updateExportButtonState();
   showToast('Generating mockup...');
-
   try {
     await exportImage(img, settings.defaultFormat, settings.defaultQuality, settings.defaultPrefix);
     showToast('✓ Exported successfully');
@@ -697,15 +677,12 @@ async function exportCurrent() {
 async function exportAll() {
   if (isExporting || images.length === 0) return;
   if (!confirm('Export all ' + images.length + ' mockups as a ZIP?')) return;
-
   isExporting = true;
   updateExportButtonState();
   showToast('Generating ' + images.length + ' mockups...');
-
   try {
     const zip = new JSZip();
     const folder = zip.folder(settings.defaultPrefix + 's');
-
     for (let i = 0; i < images.length; i++) {
       const img = images[i];
       const blob = await generateBlob(img, settings.defaultFormat, settings.defaultQuality);
@@ -713,7 +690,6 @@ async function exportAll() {
       const safeName = (settings.defaultPrefix + '-' + (i + 1) + '-' + img.device).replace(/[^a-z0-9\-_]/gi, '_');
       folder.file(safeName + '.' + ext, blob);
     }
-
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     downloadBlob(zipBlob, settings.defaultPrefix + '-batch.zip');
     showToast('✓ Exported ' + images.length + ' mockups as ZIP');
@@ -733,37 +709,92 @@ async function exportImage(img, format, quality, prefix) {
   downloadBlob(blob, safeName + '.' + ext);
 }
 
+// CRITICAL: Use cloneNode + outerHTML approach for reliable html2canvas capture
 async function generateBlob(img, format, quality) {
+  // Create a temporary visible container for html2canvas
   const wrapper = document.createElement('div');
-  // For transparent background, we need NO background wrapper at all
+
   const isTransparent = settings.background === 'transparent' && (format === 'png' || format === 'webp');
 
   if (isTransparent) {
-    wrapper.style.cssText = 'position:absolute;left:0;top:0;padding:40px;z-index:-1;opacity:0;pointer-events:none;background:transparent;';
+    wrapper.style.cssText = 'position:fixed;left:0;top:0;padding:40px;z-index:99999;background:transparent;pointer-events:none;';
   } else {
-    wrapper.style.cssText = 'position:absolute;left:0;top:0;padding:40px;z-index:-1;opacity:0;pointer-events:none;';
-    wrapper.className = settings.background === 'custom' ? 'bg-custom' : 'bg-' + settings.background;
+    wrapper.style.cssText = 'position:fixed;left:0;top:0;padding:40px;z-index:99999;pointer-events:none;';
+    if (settings.background === 'custom') {
+      wrapper.style.background = settings.customBgColor;
+    } else {
+      wrapper.className = 'bg-' + settings.background;
+    }
   }
 
   wrapper.innerHTML = createMockupHTML(img, true);
   document.body.appendChild(wrapper);
 
   try {
+    // Wait for ALL images to fully decode
+    const allImages = wrapper.querySelectorAll('img.screen-img');
+    const imagePromises = Array.from(allImages).map(im => {
+      if (im.complete && im.naturalHeight !== 0) return Promise.resolve();
+      return new Promise((resolve) => {
+        im.onload = resolve;
+        im.onerror = () => {
+          // Force data URL reload
+          const orig = im.src;
+          im.onload = resolve;
+          im.src = orig;
+        };
+        // Timeout safety
+        setTimeout(resolve, 5000);
+      });
+    });
+    await Promise.all(imagePromises);
+
+    // Wait for layout to settle
+    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => requestAnimationFrame(r));
     await new Promise(r => requestAnimationFrame(r));
 
+    const captureWidth = Math.ceil(wrapper.scrollWidth);
+    const captureHeight = Math.ceil(wrapper.scrollHeight);
+
+    // html2canvas options
     const canvas = await html2canvas(wrapper, {
       backgroundColor: isTransparent ? null : undefined,
       scale: settings.hqExport ? 2 : 1,
       logging: false,
       useCORS: true,
-      allowTaint: true
+      allowTaint: true,
+      width: captureWidth,
+      height: captureHeight,
+      windowWidth: captureWidth,
+      windowHeight: captureHeight,
+      scrollX: 0,
+      scrollY: 0,
+      foreignObjectRendering: false,
+      imageTimeout: 20000,
+      onclone: function(clonedDoc) {
+        // Ensure cloned styles are correct
+        const clonedWrapper = clonedDoc.querySelector('.mockup-wrapper');
+        if (clonedWrapper) {
+          clonedWrapper.style.transform = 'none';
+        }
+      }
     });
+
+    if (canvas.width === 0 || canvas.height === 0) {
+      throw new Error('Canvas has zero dimensions');
+    }
 
     const mime = 'image/' + format;
     return new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Canvas toBlob returned null'));
+        if (blob && blob.size > 200) {
+          resolve(blob);
+        } else if (blob) {
+          reject(new Error('Blob too small (' + blob.size + ' bytes) - capture may be blank'));
+        } else {
+          reject(new Error('toBlob returned null'));
+        }
       }, mime, format === 'png' ? undefined : quality / 100);
     });
   } finally {
@@ -782,7 +813,7 @@ function downloadBlob(blob, filename) {
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, 1000);
+  }, 1500);
 }
 
 function updateExportButtonState() {
@@ -793,30 +824,31 @@ function updateExportButtonState() {
 }
 
 // ============================================
-// MOCKUP HTML
+// ★★★ MOCKUP HTML — CLEAN IMG-BASED APPROACH ★★★
+// Uses standard <img> + object-fit, no background-image
 // ============================================
-function createMockupHTML(img, forExport = false) {
+function createMockupHTML(img, forExport) {
   const color = img.frameColor || 'dark';
   const orient = img.orientation || 'portrait';
   const orientClass = (orient === 'landscape' && ORIENTABLE_DEVICES.includes(img.device)) ? ' landscape' : '';
 
-  // Background handling
-  let bgStyle = '';
-  if (settings.background === 'transparent') {
-    bgStyle = 'background:transparent;';
-  } else if (settings.background === 'custom') {
-    bgStyle = 'background:' + settings.customBgColor + ';';
-  } else if (!forExport) {
-    bgStyle = '';
+  // Build img element with inline styles
+  let imgStyle = 'object-fit:' + img.fit + ';object-position:center center;width:100%;height:100%;display:block;';
+
+  // For 'none' fit, show actual size
+  if (img.fit === 'none') {
+    imgStyle = 'object-fit:none;width:auto;height:auto;max-width:none;max-height:none;display:block;';
   }
 
-  const imgStyle = 'object-fit:' + img.fit + ';transform-origin:center center;';
-  let transformStyle = '';
-  if (img.fit === 'none' || img.zoom !== 100 || img.posX !== 0 || img.posY !== 0) {
-    transformStyle = 'transform:translate(' + img.posX + '%, ' + img.posY + '%) scale(' + (img.zoom / 100) + ');';
+  // Apply zoom + position via transform
+  if (img.zoom !== 100 || img.posX !== 0 || img.posY !== 0) {
+    const tx = img.posX;
+    const ty = img.posY;
+    const scale = img.zoom / 100;
+    imgStyle += 'transform:translate(' + tx + '%, ' + ty + '%) scale(' + scale + ');transform-origin:center center;';
   }
 
-  const screenImg = '<img src="' + img.dataUrl + '" alt="' + escapeHtml(img.name) + '" crossorigin="anonymous" style="' + imgStyle + transformStyle + '">';
+  const screenImg = '<img class="screen-img" src="' + img.dataUrl + '" alt="' + escapeHtml(img.name) + '" crossorigin="anonymous" style="' + imgStyle + '">';
 
   let mockup = '';
 
@@ -824,60 +856,82 @@ function createMockupHTML(img, forExport = false) {
     case 'iphone':
       mockup = '<div class="mockup iphone ' + color + orientClass + '">' +
         '<div class="screen-area">' + screenImg + '<div class="dynamic-island"></div></div>' +
-        '<div class="side-button left mute"></div>' +
-        '<div class="side-button left volume-up"></div>' +
-        '<div class="side-button left volume-down"></div>' +
-        '<div class="side-button right power"></div>' +
+        '<div class="side-button mute"></div>' +
+        '<div class="side-button volume-up"></div>' +
+        '<div class="side-button volume-down"></div>' +
+        '<div class="side-button power"></div>' +
         '</div>';
       break;
+
     case 'ipad':
       mockup = '<div class="mockup ipad ' + color + orientClass + '">' +
         '<div class="screen-area">' + screenImg + '<div class="camera-dot"></div></div>' +
         '</div>';
       break;
+
     case 'android':
       mockup = '<div class="mockup android ' + color + orientClass + '">' +
         '<div class="screen-area">' + screenImg + '<div class="punch-hole"></div></div>' +
         '</div>';
       break;
+
     case 'watch':
       mockup = '<div class="mockup watch ' + color + '">' +
         '<div class="band-top"></div>' +
         '<div class="watch-body">' +
           '<div class="screen-area">' + screenImg + '</div>' +
-          '<div class="crown"></div><div class="side-button"></div><div class="speaker"></div>' +
+          '<div class="crown"></div>' +
+          '<div class="side-button"></div>' +
+          '<div class="speaker"></div>' +
         '</div>' +
         '<div class="band-bottom"></div>' +
         '</div>';
       break;
+
     case 'macbook':
       mockup = '<div class="mockup macbook ' + color + '">' +
-        '<div class="lid"><div class="screen-area"><div class="screen">' + screenImg + '</div></div></div>' +
+        '<div class="lid">' +
+          '<div class="screen-area">' +
+            '<div class="screen-inner">' + screenImg + '</div>' +
+          '</div>' +
+        '</div>' +
         '<div class="base"></div>' +
         '</div>';
       break;
+
     case 'laptop':
       mockup = '<div class="mockup laptop ' + color + '">' +
-        '<div class="lid"><div class="screen-area">' + screenImg + '</div></div>' +
+        '<div class="lid">' +
+          '<div class="screen-area">' + screenImg + '</div>' +
+        '</div>' +
         '<div class="base"></div>' +
         '</div>';
       break;
+
     case 'imac':
       mockup = '<div class="mockup imac ' + color + '">' +
-        '<div class="display"><div class="screen-area">' + screenImg + '</div></div>' +
-        '<div class="stand"></div><div class="foot"></div>' +
+        '<div class="display">' +
+          '<div class="screen-area">' + screenImg + '</div>' +
+        '</div>' +
+        '<div class="stand"></div>' +
+        '<div class="foot"></div>' +
         '</div>';
       break;
+
     case 'tv':
       mockup = '<div class="mockup tv ' + color + '">' +
-        '<div class="bezel"><div class="screen-area">' + screenImg + '</div></div>' +
-        '<div class="legs"><div class="leg"></div><div class="leg"></div></div>' +
+        '<div class="bezel">' +
+          '<div class="screen-area">' + screenImg + '</div>' +
+        '</div>' +
+        '<div class="legs">' +
+          '<div class="leg"></div>' +
+          '<div class="leg"></div>' +
+        '</div>' +
         '</div>';
       break;
   }
 
-  const wrapperStyle = 'display:inline-block;padding:30px;' + bgStyle;
-  return '<div class="mockup-wrapper" style="' + wrapperStyle + '">' + mockup + '</div>';
+  return '<div class="mockup-wrapper" style="display:inline-block;padding:30px">' + mockup + '</div>';
 }
 
 function escapeHtml(s) {
@@ -930,26 +984,21 @@ function toggleSection(id, show) {
 function renderPreview() {
   const wrapper = document.getElementById('mockupWrapper');
   if (!wrapper) return;
-
   const img = getActiveImage();
   if (!img) {
     wrapper.innerHTML = '<p style="color:var(--text-secondary);padding:40px;text-align:center">Upload an image to see preview</p>';
     wrapper.style.removeProperty('--mockup-scale');
     return;
   }
-
   wrapper.innerHTML = createMockupHTML(img, false);
   wrapper.style.setProperty('--mockup-scale', settings.scale / 100);
+  applyImageToPreview();
 }
 
 function renderBatchList() {
   const list = document.getElementById('batchList');
   if (!list) return;
-
-  if (images.length === 0) {
-    list.innerHTML = '';
-    return;
-  }
+  if (images.length === 0) { list.innerHTML = ''; return; }
 
   list.innerHTML = images.map(img => {
     const isActive = String(img.id) === String(activeImageId);
