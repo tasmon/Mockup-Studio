@@ -1,5 +1,5 @@
 {
-  "name": "Mockup Studio - Screenshot to Device Mockup",
+  "name": "Mockup Studio",
   "short_name": "Mockup Studio",
   "description": "Transform screenshots into realistic device mockups. Privacy-friendly PWA.",
   "start_url": "./index.html",
